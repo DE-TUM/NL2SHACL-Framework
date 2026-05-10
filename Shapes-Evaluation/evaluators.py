@@ -299,68 +299,6 @@ def extract_violations(validation_report_graph: Graph) -> Set[Tuple]:
             violations.add((str(focus_node), str(result_path), str(constraint)))
     return violations
 
-def evaluate_semantic_graph_equivalence_old(ground_truth_shacl: str, llm_generated_shacl: str, scale: int = 100, batch_size: int = 1000) -> dict:
-    standard_prefixes = dedent("""
-        @prefix sh: <http://www.w3.org/ns/shacl#> .
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        @prefix ex: <http://example.org/ns#> .
-        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-    """).strip()
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        gt_shacl_file = Path(temp_dir) / "gt_shacl.ttl"
-        llm_shacl_file = Path(temp_dir) / "llm_shacl.ttl"
-        gt_graph_file = Path(temp_dir) / "gt_graph.ttl"
-        llm_graph_file = Path(temp_dir) / "llm_graph.ttl"
-
-        full_ground_truth_shacl = f"{standard_prefixes}\n\n{ground_truth_shacl}"
-        gt_shacl_file.write_text(full_ground_truth_shacl, encoding="utf-8")
-        
-        full_llm_shacl = f"{standard_prefixes}\n\n{llm_generated_shacl}"
-        llm_shacl_file.write_text(full_llm_shacl, encoding="utf-8")
-
-        # False Positives
-        gt_graph_generated = generate_graph_from_library(str(gt_shacl_file), str(gt_graph_file), scale, batch_size )
-        false_positives = -1
-        gt_data_triples = 0
-        gt_node_count = 0  
-        if gt_graph_generated:
-            try:
-                data_graph = Graph().parse(str(gt_graph_file), format="turtle")
-                gt_data_triples = len(data_graph)
-                gt_node_count = len(set(data_graph.subjects(RDF.type, None))) 
-                _, report_graph, _ = validate(data_graph, shacl_graph=str(llm_shacl_file))
-                false_positives = len(extract_violations(report_graph))
-            except Exception as e:
-                print(f"    - SEMANTIC WARNING: FP validation failed. Details: {e}", file=sys.stderr)
-
-        # False Negatives
-        llm_graph_generated = generate_graph_from_library(str(llm_shacl_file), str(llm_graph_file), scale, batch_size)
-        false_negatives = -1
-        llm_data_triples = 0
-        llm_node_count = 0
-        if llm_graph_generated:
-            try:
-                data_graph = Graph().parse(str(llm_graph_file), format="turtle")
-                llm_data_triples = len(data_graph)
-                llm_node_count = len(set(data_graph.subjects(RDF.type, None)))  # 新增
-                _, report_graph, _ = validate(data_graph, shacl_graph=str(gt_shacl_file))
-                false_negatives = len(extract_violations(report_graph))
-            except Exception as e:
-                print(f"    - SEMANTIC WARNING: FN validation failed. Details: {e}", file=sys.stderr)
-
-        if false_positives == -1 and false_negatives == -1:
-            return {"status": "failure", "details": "Graph generation failed for both shapes."}
-
-        return {
-            "status": "success",
-            "false_positives": false_positives,
-            "false_negatives": false_negatives,
-            "gt_data_triples": gt_data_triples,
-            "llm_data_triples": llm_data_triples,
-            "gt_node_count": gt_node_count,
-            "llm_node_count": llm_node_count
-        }
 
 
 from textwrap import dedent
