@@ -4,6 +4,8 @@ This module provides a graphical interface for reviewing and editing LLM-generat
 
 Annotators use this tool to verify that each generated description accurately and completely reflects the constraints in the corresponding SHACL shape, and to flag or edit descriptions that require correction.
 
+![NL Annotator UI](../assets/nl_annotator.png)
+
 ---
 
 ## Requirements
