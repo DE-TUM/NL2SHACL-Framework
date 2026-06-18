@@ -24,23 +24,65 @@ The framework consists of three modules that together support end-to-end benchma
 
 ---
 
+## Getting Started
+
+Choose the path that matches your goal.
+
+**Path A: Evaluate your own NL2SHACL system on the existing dataset**
+
+This is the most common use case. You have a translation system and want to benchmark it against the NL2SHACL-Dataset.
+
+```bash
+# Step 1: Clone the framework and the dataset
+git clone https://github.com/DE-TUM/NL2SHACL-Framework
+cd NL2SHACL-Framework
+git clone https://github.com/DE-TUM/NL2SHACL-Dataset dataset
+```
+
+Then follow the translator I/O specification to produce translated shapes, and run the Shapes Evaluation module on your outputs. See [`NL2SHACL-Translator/TRANSLATOR_SPEC.md`](NL2SHACL-Translator/TRANSLATOR_SPEC.md) for the full instructions.
+
+A minimal rule-based translator is provided in [`NL2SHACL-Translator/translator_example_rule_based.py`](NL2SHACL-Translator/translator_example_rule_based.py) as a runnable reference that requires no API access.
+
+**Path B: Contribute a new dataset subset**
+
+You have a set of SHACL shapes and want to build a new NL-SHACL subset and contribute it to the NL2SHACL-Dataset.
+
+1. Use the Dataset Construction pipeline to extract shape fragments, generate descriptions, and produce human-reviewed records. See [`Dataset-Construction/README.md`](Dataset-Construction/README.md) for the full pipeline.
+2. Once your subset is ready, open an issue or pull request in the [NL2SHACL-Dataset repository](https://github.com/DE-TUM/NL2SHACL-Dataset) describing your data source and the number of records produced.
+3. See the [Contributing section in the dataset repository](https://github.com/DE-TUM/NL2SHACL-Dataset#contributing) for dataset quality requirements and the review process.
+
+**Path C: Run the full end-to-end pipeline**
+
+You want to go from raw SHACL shapes to a complete benchmark evaluation, covering dataset construction, translation, and evaluation in sequence.
+
+- For a step-by-step written walkthrough, see [`TUTORIAL.md`](TUTORIAL.md).
+- For an interactive version, open [`tutorial.ipynb`](tutorial.ipynb) in Jupyter.
+
+---
+
 ## Repository Structure
 
 ```
 NL2SHACL-Framework/
 ├── assets/                        # Images for documentation
+├── TUTORIAL.md                    # End-to-end written walkthrough
+├── tutorial.ipynb                 # Interactive end-to-end tutorial (Jupyter)
+├── CONTRIBUTING.md                # Guidelines for contributing new dataset subsets
+├── dataset/                       # Place the NL2SHACL-Dataset here (see Path A above)
 ├── Dataset-Construction/
 │   ├── Data-Preprocessor/         # Fragment extraction and ontology augmentation
 │   ├── Description-Generator/     # LLM-based NL description generation
 │   └── Description-Reviewer/      # GUI for human review and annotation
-├── NL2SHACL-Translator/           # Prompt generation and model inference
+├── NL2SHACL-Translator/
+│   ├── TRANSLATOR_SPEC.md         # Input/output specification for custom translators
+│   ├── translator_example_rule_based.py  # Minimal rule-based translator (no API required)
+│   └── ...                        # Prompt generation and model inference
 └── Shapes-Evaluation/             # Metric computation and evaluation pipeline
 ```
 
 Each module folder contains its own README with detailed usage instructions.
 
 ---
-
 
 ## License
 
