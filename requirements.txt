@@ -1,0 +1,12 @@
+# Core RDF and SHACL processing
+rdflib>=7.0.0
+pyshacl>=0.25.0
+
+# Synthetic RDF data generation (used by semantic evaluation)
+rdf-graph-gen>=1.2.0
+
+# HTTP requests (used by ontology_augment.py for HTTP fallback)
+requests>=2.28.0
+
+# LLM APIs
+google-genai>=1.0.0   # for Description-Generator/run_gemini.py

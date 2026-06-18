@@ -74,7 +74,9 @@ def main():
         print("Clone the dataset first: git clone https://github.com/DE-TUM/NL2SHACL-Dataset dataset")
         sys.exit(1)
 
-    os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)
+    output_dir = os.path.dirname(args.output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
 
     records_in = []
     with open(args.input, encoding="utf-8") as f:

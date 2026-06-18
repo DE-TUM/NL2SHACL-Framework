@@ -411,6 +411,9 @@ def main():
                          "(e.g. http://data.europa.eu/a4g/data-shape#). "
                          "URIs starting with any of these are excluded from "
                          "both domain and value terms.")
+    ap.add_argument("--subset", default=None,
+                help="Subset name prefix for output filenames (e.g. 'snik'). "
+                     "If provided, output is <subset>-ontology_snippets.jsonl.")
     args = ap.parse_args()
 
     src = Path(args.jsonl)

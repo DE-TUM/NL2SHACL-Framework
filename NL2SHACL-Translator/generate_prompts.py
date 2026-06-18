@@ -14,10 +14,11 @@ Examples:
 Expected folder structure:
     <data_root>/
       <subset>/
-        descriptions.jsonl       # fields: id, label, description
-        ontology_snippets.jsonl  # fields: id, label, ontology_snippet
-        prefixes.json            # prefix -> namespace URI mapping
-        example.txt              # few-shot example for this subset
+        <subset_prefix>-descriptions.jsonl       # fields: id, label, description
+        <subset_prefix>-ontology_snippets.jsonl  # fields: id, label, ontology_snippet
+        llm/
+          prefixes.json                          # prefix -> namespace URI mapping
+          example.txt                            # few-shot example for this subset
 """
 
 import argparse
@@ -240,10 +241,14 @@ def main():
         print(f"[ERROR] Subset directory not found: {subset_dir}", file=sys.stderr)
         sys.exit(1)
 
-    desc_path     = os.path.join(subset_dir, "descriptions.jsonl")
-    onto_path     = os.path.join(subset_dir, "ontology_snippets.jsonl")
-    prefixes_path = os.path.join(subset_dir, "prefixes.json")
-    example_path  = os.path.join(subset_dir, "example.txt")
+    # Infer file prefix from subset name (e.g. 'invoice-dataset' -> 'invoice')
+    subset_prefix = args.subset.replace("-dataset", "")
+    llm_dir       = os.path.join(subset_dir, "llm")
+
+    desc_path     = os.path.join(subset_dir, f"{subset_prefix}-descriptions.jsonl")
+    onto_path     = os.path.join(subset_dir, f"{subset_prefix}-ontology_snippets.jsonl")
+    prefixes_path = os.path.join(llm_dir, "prefixes.json")
+    example_path  = os.path.join(llm_dir, "example.txt")
 
     for path in (desc_path, onto_path, prefixes_path):
         if not os.path.isfile(path):

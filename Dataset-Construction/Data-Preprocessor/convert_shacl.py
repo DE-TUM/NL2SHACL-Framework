@@ -3,6 +3,9 @@ convert_shacl.py
 
 Converts SHACL .ttl files into a JSONL file.
 
+All .ttl files in the input directory are merged into a single RDF graph
+before processing, so cross-file shape references are resolved correctly.
+
 Handles two file patterns:
   - Pattern A (original): auxiliary shapes referenced via sh:node only.
   - Pattern B (new):      auxiliary shapes referenced via sh:xone / sh:or /
@@ -11,21 +14,20 @@ Handles two file patterns:
                           sh:PropertyShape siblings shared across NodeShapes.
 
 Key rules:
-  1. Top-level shapes = URIRef NodeShapes that are NOT purely auxiliary.
+  1. Top-level shapes = URIRef NodeShapes that are NOT purely auxiliary,
+     plus URIRef PropertyShapes that have their own sh:target* declaration.
      BNode NodeShapes are NEVER top-level records.
   2. Auxiliary shape = a named (URIRef) NodeShape or PropertyShape that:
-       - is referenced by another shape in the same file (via sh:node,
-         sh:xone, sh:or, sh:and, sh:not, or sh:property), AND
+       - is referenced by another shape (via sh:node, sh:xone, sh:or,
+         sh:and, sh:not, or sh:property), AND
        - has no sh:target* predicate of its own.
      Auxiliary shapes are inlined into the referencing shape's Turtle.
   3. Named RDF list heads (rdf:first / rdf:rest chains) reachable from a
      shape are fully traversed and included in that shape's snippet.
-  4. Cross-file sh:node references (URIRef not in this file) are dropped
-     with a warning.
-  5. sh:sparql triples (and their BNode sub-graphs) are stripped from every
+  4. sh:sparql triples (and their BNode sub-graphs) are stripped from every
      shape before serialization. The rest of the shape is kept intact.
-  6. Duplicate IDs get -1, -2, ... suffix.
-  7. Only prefixes actually used in a snippet are emitted.
+  5. Duplicate IDs get -1, -2, ... suffix.
+  6. Only prefixes actually used in a snippet are emitted.
 
 Usage:
   python convert_shacl.py [--input-dir DIR] [--output-file FILE]
@@ -57,15 +59,17 @@ INLINE_PREDS = {
     SH.property,
 }
 
-# Predicates that both identify a node as a shape (W3C condition 2) AND
-# mark it as top-level (it has its own validation target, must not be inlined).
+# Predicates that identify a shape as having its own validation target.
 SH_TARGET = {SH.targetClass, SH.targetNode, SH.targetSubjectsOf, SH.targetObjectsOf}
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def collect_triples(graph: Graph, subject, visited: set) -> list:
     """
-    Recursively collect all triples reachable from *subject*.
+    Recursively collect all triples reachable from subject.
 
     Follows:
       - BNode objects unconditionally (anonymous blank nodes).
@@ -83,7 +87,6 @@ def collect_triples(graph: Graph, subject, visited: set) -> list:
         if isinstance(o, BNode):
             triples.extend(collect_triples(graph, o, visited))
         elif isinstance(o, URIRef) and p in (RDF.first, RDF.rest):
-            # Follow named RDF list nodes (e.g. :ignoredProperties chain)
             triples.extend(collect_triples(graph, o, visited))
     return triples
 
@@ -92,14 +95,8 @@ def strip_sparql_triples(triples: list) -> tuple[list, int]:
     """
     Remove sh:sparql triples and their entire BNode sub-graphs from a triple list.
 
-    A sh:sparql triple looks like:
-        (subject, sh:sparql, bnode)
-    The BNode value may itself have further triples (e.g. sh:select).
-    All of those are removed too.
-
     Returns (cleaned_triples, count_removed).
     """
-    # First pass: find all BNode roots attached via sh:sparql
     sparql_bnodes: set = set()
     for s, p, o in triples:
         if p == SH.sparql and isinstance(o, BNode):
@@ -108,7 +105,6 @@ def strip_sparql_triples(triples: list) -> tuple[list, int]:
     if not sparql_bnodes:
         return triples, 0
 
-    # Expand to the full sub-graph of each sparql BNode
     def collect_bnode_subtree(root: BNode, all_triples: list) -> set:
         subtree: set = set()
         stack = [root]
@@ -128,8 +124,8 @@ def strip_sparql_triples(triples: list) -> tuple[list, int]:
 
     cleaned = [
         (s, p, o) for s, p, o in triples
-        if not (p == SH.sparql)          # drop the sh:sparql arc itself
-        and s not in bad_subjects        # drop all triples inside the BNode
+        if not (p == SH.sparql)
+        and s not in bad_subjects
     ]
     removed = len(triples) - len(cleaned)
     return cleaned, removed
@@ -183,10 +179,9 @@ def uri_to_short_id(uri: str, prefix_map: dict) -> str:
 
 
 def has_target(graph: Graph, shape) -> bool:
+    """Return True if shape has any sh:target* declaration."""
     return any((shape, tp, None) in graph for tp in SH_TARGET)
 
-
-# ── BNode list unwrapper ──────────────────────────────────────────────────────
 
 def unwrap_list_members(graph: Graph, node) -> list:
     """
@@ -205,16 +200,18 @@ def unwrap_list_members(graph: Graph, node) -> list:
     return members
 
 
-# ── per-file processing ───────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Core graph processing
+# ---------------------------------------------------------------------------
 
-def process_file(filepath: str, stats: dict) -> list[dict]:
-    filename = os.path.basename(filepath)
-    g = Graph()
-    g.parse(filepath, format="turtle")
+def process_graph(g: Graph, stats: dict) -> list[dict]:
+    """Extract top-level shape records from a merged RDF graph."""
+
     prefix_map = {p: str(ns) for p, ns in g.namespaces()}
 
-    # ── shape discovery ─────────────────────────────────────────────────────
-    # W3C condition 1: explicit rdf:type sh:NodeShape / sh:PropertyShape
+    # --- Shape discovery ---
+
+    # Explicit rdf:type declarations
     named_node_shapes: set = {
         s for s in g.subjects(RDF.type, SH.NodeShape)
         if isinstance(s, URIRef)
@@ -224,28 +221,24 @@ def process_file(filepath: str, stats: dict) -> list[dict]:
         if isinstance(s, URIRef)
     }
 
-    # W3C condition 2: subject of a sh:target* triple but no explicit type.
-    # These are valid top-level shapes even without a type declaration.
+    # W3C condition 2: shapes identified by sh:target* without explicit type declaration
     for tp in SH_TARGET:
         for s in g.subjects(tp, None):
             if not isinstance(s, URIRef):
                 continue
             if s not in named_node_shapes and s not in named_property_shapes:
-                log.info("    Implicit shape discovered via %s: %s",
+                log.info("  Implicit shape discovered via %s: %s",
                          tp.split("#")[-1], uri_to_short_id(str(s), prefix_map))
                 named_node_shapes.add(s)
 
     all_named_shapes = named_node_shapes | named_property_shapes
 
-    # ── build reference map ─────────────────────────────────────────────────
-    # For each named shape, discover all named shapes it directly references
-    # via INLINE_PREDS (following BNode / list chains to find them).
+    # --- Build reference map ---
 
-    aux_to_parents: dict = defaultdict(set)  # aux_shape -> {parent, ...}
-    cross_file_refs: list = []
+    aux_to_parents: dict = defaultdict(set)
 
     def scan_for_refs(parent: URIRef, root):
-        """DFS from root; collect named-shape references into aux_to_parents."""
+        """DFS from root; record named-shape references into aux_to_parents."""
         visited = set()
         stack = [root]
         while stack:
@@ -258,37 +251,19 @@ def process_file(filepath: str, stats: dict) -> list[dict]:
                     if isinstance(o, URIRef):
                         if o in all_named_shapes and o != parent:
                             aux_to_parents[o].add(parent)
-                        elif o not in all_named_shapes:
-                            cross_file_refs.append((parent, o))
                     elif isinstance(o, BNode):
-                        # Could be an rdf:List head for sh:xone / sh:or / sh:and
                         for member in unwrap_list_members(g, o):
                             if isinstance(member, URIRef):
                                 if member in all_named_shapes and member != parent:
                                     aux_to_parents[member].add(parent)
-                                elif member not in all_named_shapes:
-                                    cross_file_refs.append((parent, member))
                             elif isinstance(member, BNode):
                                 stack.append(member)
-                        stack.append(o)  # also traverse the BNode itself
+                        stack.append(o)
                 if isinstance(o, BNode):
                     stack.append(o)
 
     for shape in named_node_shapes:
         scan_for_refs(shape, shape)
-
-    # Log cross-file refs
-    seen_cross = set()
-    for parent, ref in cross_file_refs:
-        key = (parent, ref)
-        if key in seen_cross:
-            continue
-        seen_cross.add(key)
-        parent_id = uri_to_short_id(str(parent), prefix_map)
-        ref_id    = uri_to_short_id(str(ref),    prefix_map)
-        log.warning("  [%s] CROSS-FILE ref dropped: %s -> sh:node %s",
-                    filename, parent_id, ref_id)
-        stats["cross_file_refs_dropped"] += 1
 
     # A shape is auxiliary if it is referenced by others AND has no target of its own
     auxiliary_shapes = {
@@ -296,19 +271,30 @@ def process_file(filepath: str, stats: dict) -> list[dict]:
         if not has_target(g, shape)
     }
 
-    top_level_shapes = named_node_shapes - auxiliary_shapes
+    # Top-level NodeShapes: not auxiliary
+    top_level_node_shapes = named_node_shapes - auxiliary_shapes
 
-    log.info("  %s: %d NodeShapes | %d PropertyShapes | "
-             "%d auxiliary (inlined) | %d top-level",
-             filename, len(named_node_shapes), len(named_property_shapes),
-             len(auxiliary_shapes), len(top_level_shapes))
-    for aux in sorted(auxiliary_shapes, key=str):
-        log.info("    AUX inlined: %s", uri_to_short_id(str(aux), prefix_map))
+    # Top-level PropertyShapes: have their own sh:target* declaration
+    # These are standalone PropertyShapes that trigger validation independently.
+    top_level_property_shapes = {
+        s for s in named_property_shapes
+        if has_target(g, s) and s not in auxiliary_shapes
+    }
+
+    top_level_shapes = top_level_node_shapes | top_level_property_shapes
+
+    log.info("  NodeShapes: %d | PropertyShapes: %d | "
+             "Auxiliary (inlined): %d | Top-level: %d "
+             "(NodeShapes: %d, PropertyShapes with target: %d)",
+             len(named_node_shapes), len(named_property_shapes),
+             len(auxiliary_shapes), len(top_level_shapes),
+             len(top_level_node_shapes), len(top_level_property_shapes))
 
     stats["total_shapes"]       += len(top_level_shapes)
     stats["inlined_aux_shapes"] += len(auxiliary_shapes)
 
-    # ── build records ───────────────────────────────────────────────────────
+    # --- Build records ---
+
     records = []
     for shape in sorted(top_level_shapes, key=str):
         # Collect all auxiliary shapes transitively needed by this shape
@@ -337,14 +323,16 @@ def process_file(filepath: str, stats: dict) -> list[dict]:
         short_id = uri_to_short_id(str(shape), prefix_map)
         ttl, n_sparql = shape_to_turtle(shape, needed_aux, g, prefix_map)
         if n_sparql:
-            log.info("    sh:sparql stripped (%d triple(s)) from %s", n_sparql, short_id)
+            log.info("  sh:sparql stripped (%d triple(s)) from %s", n_sparql, short_id)
             stats["sparql_triples_stripped"] += n_sparql
         records.append({"_raw_id": short_id, "shacl": ttl, "nl": ""})
 
     return records
 
 
-# ── main ──────────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(
@@ -376,19 +364,24 @@ def main():
 
     log.info("Found %d TTL file(s): %s", len(ttl_files), ttl_files)
 
+    # Merge all .ttl files into a single graph before processing.
+    # This resolves cross-file shape references correctly.
+    g = Graph()
+    for fname in ttl_files:
+        fpath = os.path.join(input_dir, fname)
+        log.info("Parsing: %s", fname)
+        g.parse(fpath, format="turtle")
+
+    log.info("Merged graph: %d triples total", len(g))
+
     stats = {
-        "files_processed":         0,
+        "files_processed":         len(ttl_files),
         "total_shapes":            0,
         "inlined_aux_shapes":      0,
-        "cross_file_refs_dropped": 0,
         "sparql_triples_stripped": 0,
     }
 
-    all_records = []
-    for fname in ttl_files:
-        stats["files_processed"] += 1
-        recs = process_file(os.path.join(input_dir, fname), stats)
-        all_records.extend(recs)
+    all_records = process_graph(g, stats)
 
     # Deduplicate IDs
     id_counter: dict[str, int] = {}
@@ -412,7 +405,6 @@ def main():
     log.info("  Files processed           : %d", stats["files_processed"])
     log.info("  Top-level shape records   : %d", stats["total_shapes"])
     log.info("  Auxiliary shapes inlined  : %d", stats["inlined_aux_shapes"])
-    log.info("  Cross-file refs dropped   : %d", stats["cross_file_refs_dropped"])
     log.info("  sh:sparql triples stripped: %d", stats["sparql_triples_stripped"])
     log.info("  Output JSONL records      : %d", len(final_records))
     log.info("=" * 60)

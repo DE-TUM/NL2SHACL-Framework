@@ -4,17 +4,17 @@ run_gemini.py
 Call the Gemini API with generated prompt files and save results.
 
 Usage:
-    python run_gemini.py <subset_name>
+    python run_gemini.py --input <nl_prompts.jsonl>
 
 Example:
-    python run_gemini.py epo
+    python run_gemini.py --input examples/my-dataset/output_data_augmented_nl_prompts.jsonl
 
 Requires:
     - GEMINI_API_KEY environment variable set
     - pip install google-genai
 
 Output:
-    <subset_name>-dataset/<subset_name>-generated_description.jsonl
+    <input_stem>_generated_description.jsonl (in the same directory as input)
 """
 
 import argparse
@@ -65,22 +65,30 @@ def call_gemini(client, system_prompt, user_prompt):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run Gemini API on NL prompt files for a dataset subset.")
-    parser.add_argument("subset", help="Subset name, e.g. epo, invoice, snik")
+    parser = argparse.ArgumentParser(
+        description="Run Gemini API on NL prompt files."
+    )
+    parser.add_argument(
+        "--input",
+        required=True,
+        help="Path to the prompt JSONL file produced by generate_nl_prompts.py.",
+    )
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="Output JSONL path. Defaults to <input_stem>_generated_description.jsonl.",
+    )
     args = parser.parse_args()
 
-    subset = args.subset.lower()
-    subset_dir = f"{subset}-dataset"
-
-    if not os.path.isdir(subset_dir):
-        print(f"Error: Subset directory not found: {subset_dir}", file=sys.stderr)
+    if not os.path.isfile(args.input):
+        print(f"Error: Input file not found: {args.input}", file=sys.stderr)
         sys.exit(1)
 
-    prompt_path = os.path.join(subset_dir, f"{subset}-get_nl_prompt.jsonl")
-    if not os.path.isfile(prompt_path):
-        print(f"Error: Prompt file not found: {prompt_path}", file=sys.stderr)
-        print(f"Run generate_prompts.py {subset} first.", file=sys.stderr)
-        sys.exit(1)
+    if args.output:
+        output_path = args.output
+    else:
+        stem = os.path.splitext(args.input)[0]
+        output_path = f"{stem}_generated_description.jsonl"
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -89,8 +97,10 @@ def main():
 
     client = genai.Client(api_key=api_key)
 
-    records = load_prompts(prompt_path)
-    output_path = os.path.join(subset_dir, f"{subset}-generated_description.jsonl")
+    records = load_prompts(args.input)
+    if not records:
+        print(f"Error: No records found in {args.input}", file=sys.stderr)
+        sys.exit(1)
 
     # Load already-processed IDs to allow resuming interrupted runs
     processed_ids = set()
@@ -104,7 +114,7 @@ def main():
         print(f"Resuming: {len(processed_ids)} records already processed.")
 
     remaining = [r for r in records if r["id"] not in processed_ids]
-    print(f"Processing {len(remaining)} records for subset '{subset}'...")
+    print(f"Processing {len(remaining)} records...")
 
     with open(output_path, "a", encoding="utf-8") as out_f:
         for i, record in enumerate(remaining, 1):

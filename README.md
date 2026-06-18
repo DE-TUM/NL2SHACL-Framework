@@ -67,15 +67,19 @@ NL2SHACL-Framework/
 ├── assets/                        # Images for documentation
 ├── TUTORIAL.md                    # End-to-end written walkthrough
 ├── tutorial.ipynb                 # Interactive end-to-end tutorial (Jupyter)
-├── CONTRIBUTING.md                # Guidelines for contributing new dataset subsets
 ├── dataset/                       # Place the NL2SHACL-Dataset here (see Path A above)
+├── examples/
+│   ├── my-dataset/                # Example input: raw SHACL and ontology files
+│   └── example-nl2shacl-dataset/  # Example output: structured dataset
 ├── Dataset-Construction/
+│   ├── convert_dataset.py         # Converts augmented JSONL to final dataset format
 │   ├── Data-Preprocessor/         # Fragment extraction and ontology augmentation
 │   ├── Description-Generator/     # LLM-based NL description generation
 │   └── Description-Reviewer/      # GUI for human review and annotation
 ├── NL2SHACL-Translator/
 │   ├── TRANSLATOR_SPEC.md         # Input/output specification for custom translators
 │   ├── translator_example_rule_based.py  # Minimal rule-based translator (no API required)
+│   ├── attach_reference.py        # Attaches reference SHACL to translator outputs
 │   └── ...                        # Prompt generation and model inference
 └── Shapes-Evaluation/             # Metric computation and evaluation pipeline
 ```

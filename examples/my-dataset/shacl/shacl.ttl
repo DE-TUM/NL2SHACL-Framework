@@ -1,0 +1,207 @@
+@prefix : <http://www.snik.eu/ontology/meta/>.
+@prefix meta: <http://www.snik.eu/ontology/meta/>.
+@prefix bb: <http://www.snik.eu/ontology/bb/>.
+@prefix ob: <http://www.snik.eu/ontology/ob/>.
+@prefix he: <http://www.snik.eu/ontology/he/>.
+@prefix ciox: <http://www.snik.eu/ontology/ciox/>.
+@prefix it4it: <http://www.snik.eu/ontology/it4it/>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix xml: <http://www.w3.org/XML/1998/namespace>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix ov: <http://open.vocab.org/terms/>.
+@prefix dbo: <http://dbpedia.org/ontology/>.
+@prefix dbr: <http://dbpedia.org/resource/>.
+@prefix yago: <http://dbpedia.org/class/yago/>.
+@prefix doap: <http://usefulinc.com/ns/doap#>.
+@prefix skos: <http://www.w3.org/2004/02/skos/core#>.
+@prefix swo: <http://www.ebi.ac.uk/swo/>.
+@prefix swol: <http://www.ebi.ac.uk/swo/license/>.
+@prefix dc: <http://purl.org/dc/terms/>.
+@prefix vann: <http://purl.org/vocab/vann/>.
+@prefix schema: <http://schema.org/>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix sh:<http://www.w3.org/ns/shacl#>.
+@base <http://www.snik.eu/ontology/>.
+
+:ignoredProperties rdf:first vann:example;
+	rdf:rest ( rdf:type rdfs:subClassOf rdfs:comment rdfs:seeAlso skos:altLabel dc:source skos:definition owl:sameAs rdfs:isDefinedBy :chapter :consolidated he:page bb:page ob:page bb:conceptDomain ob:conceptDomain schema:error).
+
+# inheritance of closed shapes does seem not work, see https://stackoverflow.com/questions/70785194/shacl-closed-shape-with-superclass-inheritance
+:topProperties rdf:first skos:closeMatch;
+	rdf:rest ( skos:exactMatch skos:relatedMatch skos:narrowMatch skos:broadMatch skos:related meta:isAssociatedWith meta:homonym).
+
+:labelShape a sh:PropertyShape;
+	sh:path rdfs:label;
+	sh:minCount "1"^^xsd:integer.
+
+:commentShape a sh:PropertyShape;
+	sh:path rdfs:comment;
+	sh:minCount "1"^^xsd:integer.
+
+#### Top ###################################################################
+
+:TopShape a sh:NodeShape;
+	sh:targetClass :Top;
+	sh:property [sh:path skos:closeMatch],
+		[sh:path skos:exactMatch],
+		[sh:path skos:relatedMatch],
+		[sh:path skos:narrowMatch],
+		[sh:path skos:broadMatch],
+		[sh:path meta:homonym];
+	sh:xone ( :RoleShape :FunctionShape :EntityTypeShape ).
+
+#### Role ###################################################################
+
+:RoleShape a sh:NodeShape;
+	sh:targetClass :Role;
+	sh:property :labelShape,
+		[sh:path :isResponsibleForRole],
+		[sh:path :roleComponent],
+		[sh:path :isInvolvedIn],
+		[sh:path :isResponsibleForFunction],
+		[sh:path :isResponsibleForEntityType],
+		[sh:path :approvesEntityType],
+		[sh:path :approvesFunction],
+		[sh:path rdf:type; sh:hasValue :Role ];
+	sh:closed true;
+	sh:ignoredProperties :ignoredProperties, :topProperties.
+
+:RoleDomainShape a sh:NodeShape;
+	sh:targetSubjectsOf
+		:isResponsibleForRole,
+		:roleComponent,
+		:isInvolvedIn,
+		:isResponsibleForFunction;
+	sh:class :Role.
+
+:RoleRangeShape a sh:NodeShape;
+	sh:targetObjectsOf
+		:isResponsibleForRole,
+		:roleComponent;
+	sh:class :Role.
+
+#### Function ###############################################################
+
+:FunctionShape a sh:NodeShape;
+	sh:targetClass :Function;
+	sh:property :labelShape,
+		[sh:path :functionComponent],
+		[sh:path :uses],
+		[sh:path :updates],
+		[sh:path :increases],
+		[sh:path :decreases],
+		[sh:path rdf:type; sh:hasValue :Function ];
+	sh:closed true;
+	sh:ignoredProperties :ignoredProperties, :topProperties.
+
+:FunctionDomainShape a sh:NodeShape;
+	sh:targetSubjectsOf
+		:functionComponent,
+		:uses,
+		:updates,
+		:increases,
+		:decreases;
+	sh:class :Function.
+
+:isInvolvedInRangeShape a sh:NodeShape;
+	sh:targetObjectsOf :isInvolvedIn;
+	sh:class :Function.
+
+:isResponsibleForFunctionRangeShape a sh:NodeShape;
+	sh:targetObjectsOf :isResponsibleForFunction;
+	sh:class :Function.
+
+:approvesFunctionRangeShape a sh:NodeShape;
+	sh:targetObjectsOf :approvesFunction;
+	sh:class :Function.
+
+:functionComponentRangeShape a sh:NodeShape;
+	sh:targetObjectsOf :functionComponent;
+	sh:class :Function.
+
+:supportsRangeShape a sh:NodeShape;
+	sh:targetObjectsOf :supports;
+	sh:class :Function.
+
+#### Entity Type ############################################################
+
+:EntityTypeShape a sh:NodeShape;
+	sh:targetClass :EntityType;
+	sh:property :labelShape,
+		[sh:path :entityTypeComponent],
+		[sh:path :isBasedOn],
+		[sh:path rdf:type; sh:hasValue :EntityType];
+	sh:closed true;
+	sh:ignoredProperties :ignoredProperties, :topProperties, (:communicatesWith :supports :softwareProduct :typicalFeature).
+
+:EntityTypeDomainShape a sh:NodeShape;
+	sh:targetSubjectsOf
+		:entityTypeComponent,
+		:isBasedOn;
+	sh:class :EntityType.
+
+:UpdatesRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :updates;
+	sh:class :EntityType.
+
+:IncreasesRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :increases;
+	sh:class :EntityType.
+
+:DecreasesRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :decreases;
+	sh:class :EntityType.
+
+:EntityTypeComponentRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :entityTypeComponent;
+	sh:class :EntityType.
+
+:IsBasedOnRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :isBasedOn;
+	sh:class :EntityType.
+
+:IsResponsibleForEntityTypeRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :isResponsibleForEntityType;
+	sh:class :EntityType.
+
+:ApprovesEntityTypeRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :approvesEntityType;
+	sh:class :EntityType.
+
+:UsesRangeShape a sh:NodeShape;
+    sh:targetObjectsOf :uses;
+	sh:class :EntityType.
+
+#### Other ##################################################################
+
+:ApplicationComponentShape a sh:NodeShape;
+	sh:targetClass :ApplicationComponent;
+	sh:property :labelShape,
+		[sh:path :communicatesWith],
+		[sh:path :supports].
+
+:ApplicationComponentDomainShape a sh:NodeShape;
+	sh:targetSubjectsOf
+		:communicatesWith,
+		:supports;
+	sh:class :ApplicationComponent.
+
+:ComputerBasedApplicationComponentDomainShape a sh:NodeShape;
+	sh:targetSubjectsOf
+		:softwareProduct,
+		:typicalFeature;
+	sh:class :ComputerBasedApplicationComponent.
+
+:NotRoleShape a sh:NodeShape;
+    sh:targetClass :Function, :EntityType;
+	sh:not [ a sh:PropertyShape; sh:path ( rdfs:subClassOf rdf:type );	sh:hasValue :Role; ].
+
+:NotFunctionShape a sh:NodeShape;
+    sh:targetClass :Role, :EntityType;
+	sh:not [ a sh:PropertyShape; sh:path ( rdfs:subClassOf rdf:type );	sh:hasValue :Function; ].
+
+:NotEntityTypeShape a sh:NodeShape;
+    sh:targetClass :Role, :Function;
+	sh:not [ a sh:PropertyShape; sh:path ( rdfs:subClassOf rdf:type );	sh:hasValue :EntityType; ].
