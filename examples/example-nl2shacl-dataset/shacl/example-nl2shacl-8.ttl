@@ -1,0 +1,58 @@
+# label: meta:TopShape
+@prefix meta: <http://www.snik.eu/ontology/meta/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+meta:TopShape a sh:NodeShape ;
+    sh:property [ sh:path skos:closeMatch ],
+        [ sh:path skos:exactMatch ],
+        [ sh:path skos:relatedMatch ],
+        [ sh:path skos:narrowMatch ],
+        [ sh:path skos:broadMatch ],
+        [ sh:path meta:homonym ] ;
+    sh:targetClass meta:Top ;
+    sh:xone ( meta:RoleShape meta:FunctionShape meta:EntityTypeShape ) .
+
+meta:EntityTypeShape a sh:NodeShape ;
+    sh:closed true ;
+    sh:ignoredProperties ( meta:communicatesWith meta:supports meta:softwareProduct meta:typicalFeature ),
+        meta:ignoredProperties,
+        meta:topProperties ;
+    sh:property [ sh:path meta:entityTypeComponent ],
+        [ sh:path meta:isBasedOn ],
+        [ sh:hasValue meta:EntityType ;
+            sh:path rdf:type ],
+        meta:labelShape ;
+    sh:targetClass meta:EntityType .
+
+meta:FunctionShape a sh:NodeShape ;
+    sh:closed true ;
+    sh:ignoredProperties meta:ignoredProperties,
+        meta:topProperties ;
+    sh:property [ sh:path meta:functionComponent ],
+        [ sh:path meta:uses ],
+        [ sh:path meta:updates ],
+        [ sh:path meta:increases ],
+        [ sh:path meta:decreases ],
+        [ sh:hasValue meta:Function ;
+            sh:path rdf:type ],
+        meta:labelShape ;
+    sh:targetClass meta:Function .
+
+meta:RoleShape a sh:NodeShape ;
+    sh:closed true ;
+    sh:ignoredProperties meta:ignoredProperties,
+        meta:topProperties ;
+    sh:property [ sh:path meta:isResponsibleForRole ],
+        [ sh:path meta:roleComponent ],
+        [ sh:path meta:isInvolvedIn ],
+        [ sh:path meta:isResponsibleForFunction ],
+        [ sh:path meta:isResponsibleForEntityType ],
+        [ sh:path meta:approvesEntityType ],
+        [ sh:path meta:approvesFunction ],
+        [ sh:hasValue meta:Role ;
+            sh:path rdf:type ],
+        meta:labelShape ;
+    sh:targetClass meta:Role .

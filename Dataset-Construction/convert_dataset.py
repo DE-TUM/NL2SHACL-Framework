@@ -11,6 +11,9 @@ Converts an augmented JSONL file into a structured dataset:
       <prefix>-2.ttl
       ...
 
+Only records where both description and ontology_snippet are non-empty are written.
+Records missing either field are warned and skipped.
+
 Usage:
     python convert_dataset.py <augmented.jsonl> \
         --descriptions <reviewed.jsonl> \
@@ -105,14 +108,14 @@ def main():
     desc_path    = out_dir / f"{args.prefix}-descriptions.jsonl"
     snippet_path = out_dir / f"{args.prefix}-ontology_snippets.jsonl"
 
-    # Load reviewed descriptions keyed by original shape id
     descriptions = load_descriptions(desc_src)
     print(f"Loaded {len(descriptions)} reviewed descriptions from {desc_src}")
 
     desc_lines    = []
     snippet_lines = []
-    counter       = 0
-    missing_desc  = []
+    counter       = 0   # counts all input records (for sequential id assignment)
+    written       = 0   # counts records actually written
+    skipped       = []  # (orig_id, reason)
 
     with src.open(encoding="utf-8") as fh:
         for raw in fh:
@@ -126,16 +129,26 @@ def main():
                 continue
 
             counter += 1
-            new_id  = f"{args.prefix}-{counter}"
             orig_id = record.get("id", f"entry-{counter}")
             label   = clean_label(orig_id)
             shacl   = record.get("shacl", "")
-            snippet = record.get("ontology_snippet", {})
+            snippet = record.get("ontology_snippet")
 
-            # Look up description by original id
             description = descriptions.get(orig_id, "")
+
+            # Check both fields before writing
+            missing = []
             if not description:
-                missing_desc.append(orig_id)
+                missing.append("description")
+            if not snippet:
+                missing.append("ontology_snippet")
+
+            if missing:
+                skipped.append((orig_id, ", ".join(missing)))
+                continue
+
+            written += 1
+            new_id   = f"{args.prefix}-{written}"
 
             # descriptions.jsonl
             desc_lines.append(json.dumps(
@@ -157,17 +170,15 @@ def main():
     desc_path.write_text("\n".join(desc_lines) + "\n", encoding="utf-8")
     snippet_path.write_text("\n".join(snippet_lines) + "\n", encoding="utf-8")
 
-    print(f"Converted {counter} entries to {out_dir}/")
-    print(f"  {args.prefix}-descriptions.jsonl      ({counter} lines)")
-    print(f"  {args.prefix}-ontology_snippets.jsonl ({counter} lines)")
-    print(f"  shacl/                                ({counter} .ttl files)")
+    print(f"Converted {written} of {counter} entries to {out_dir}/")
+    print(f"  {args.prefix}-descriptions.jsonl      ({written} lines)")
+    print(f"  {args.prefix}-ontology_snippets.jsonl ({written} lines)")
+    print(f"  shacl/                                ({written} .ttl files)")
 
-    if missing_desc:
-        print(f"\n[WARN] {len(missing_desc)} records had no reviewed description:")
-        for orig_id in missing_desc:
-            print(f"  {orig_id}")
-        print("These records have an empty description field in the output.")
-
+    if skipped:
+        print(f"\n[WARN] {len(skipped)} records skipped (missing fields):")
+        for orig_id, reason in skipped:
+            print(f"  {orig_id}: missing {reason}")
 
 if __name__ == "__main__":
     main()

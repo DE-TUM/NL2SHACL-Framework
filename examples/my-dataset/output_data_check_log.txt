@@ -1,0 +1,174 @@
+SHACL Quality Check — Part 1
+Source : examples\my-dataset\output_data.jsonl
+Run at : 2026-06-19T14:39:18
+======================================================================
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApplicationComponentDomainShape  (line 1)
+  [i]  Syntax        : PASS  (4 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApplicationComponentShape  (line 2)
+  [i]  Syntax        : PASS  (10 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdfs', 'sh', 'xsd']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApprovesEntityTypeRangeShape  (line 3)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ComputerBasedApplicationComponentDomainShape  (line 4)
+  [i]  Syntax        : PASS  (4 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:DecreasesRangeShape  (line 5)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeComponentRangeShape  (line 6)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeDomainShape  (line 7)
+  [i]  Syntax        : PASS  (4 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeShape  (line 8)
+  [i]  Syntax        : PASS  (25 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh', 'xsd']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:FunctionDomainShape  (line 9)
+  [i]  Syntax        : PASS  (7 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:FunctionShape  (line 10)
+  [i]  Syntax        : PASS  (22 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh', 'xsd']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IncreasesRangeShape  (line 11)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IsBasedOnRangeShape  (line 12)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IsResponsibleForEntityTypeRangeShape  (line 13)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotEntityTypeShape  (line 14)
+  [i]  Syntax        : PASS  (11 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotFunctionShape  (line 15)
+  [i]  Syntax        : PASS  (11 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotRoleShape  (line 16)
+  [i]  Syntax        : PASS  (11 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleDomainShape  (line 17)
+  [i]  Syntax        : PASS  (6 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleRangeShape  (line 18)
+  [i]  Syntax        : PASS  (4 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleShape  (line 19)
+  [i]  Syntax        : PASS  (26 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'rdfs', 'sh', 'xsd']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:TopShape  (line 20)
+  [i]  Syntax        : PASS  (85 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'rdf', 'sh', 'skos', 'xsd']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:UpdatesRangeShape  (line 21)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:UsesRangeShape  (line 22)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:approvesFunctionRangeShape  (line 23)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:functionComponentRangeShape  (line 24)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:isInvolvedInRangeShape  (line 25)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:isResponsibleForFunctionRangeShape  (line 26)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:supportsRangeShape  (line 27)
+  [i]  Syntax        : PASS  (3 triples)
+  [ii] Structure     : PASS
+  [iv] Prefixes found: ['meta', 'sh']
+
+======================================================================
+SUMMARY
+  Total entries processed      : 27
+  (i)  Syntax   PASS / FAIL    : 27 / 0
+  (ii) Structure PASS / WARN / FAIL : 27 / 0 / 0
+  (iv) Unique prefix aliases   : 6
+  ✓ No prefix alias collisions detected

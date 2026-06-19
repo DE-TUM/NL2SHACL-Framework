@@ -1,0 +1,300 @@
+SHACL Quality Check — Part 2: Ontology Metadata Lookup
+Source        : examples\my-dataset\output_data.jsonl
+Prefixes      : examples\my-dataset\output_data_prefixes.json
+Ontology dir  : examples\my-dataset\ontology
+Run at        : 2026-06-19T14:39:27
+======================================================================
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApplicationComponentDomainShape  (line 1)
+  [domain terms] (2 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/communicatesWith
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/supports
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/ApplicationComponent
+  Summary — domain: 2 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApplicationComponentShape  (line 2)
+  [domain terms] (4 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/ApplicationComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/communicatesWith
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/supports
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#label
+  [shacl value terms] none
+  Summary — domain: 4 found, 0 not found  |  value: 0 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ApprovesEntityTypeRangeShape  (line 3)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesEntityType
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:ComputerBasedApplicationComponentDomainShape  (line 4)
+  [domain terms] (2 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/softwareProduct
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/typicalFeature
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/ComputerBasedApplicationComponent
+  Summary — domain: 2 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:DecreasesRangeShape  (line 5)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/decreases
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeComponentRangeShape  (line 6)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/entityTypeComponent
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeDomainShape  (line 7)
+  [domain terms] (2 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/entityTypeComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isBasedOn
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 2 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:EntityTypeShape  (line 8)
+  [domain terms] (7 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/communicatesWith
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/entityTypeComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isBasedOn
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/softwareProduct
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/supports
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/typicalFeature
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#label
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 7 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:FunctionDomainShape  (line 9)
+  [domain terms] (5 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/decreases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/functionComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/increases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/updates
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/uses
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 5 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:FunctionShape  (line 10)
+  [domain terms] (6 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/decreases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/functionComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/increases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/updates
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/uses
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#label
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 6 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IncreasesRangeShape  (line 11)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/increases
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IsBasedOnRangeShape  (line 12)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isBasedOn
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:IsResponsibleForEntityTypeRangeShape  (line 13)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForEntityType
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotEntityTypeShape  (line 14)
+  [domain terms] (3 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#subClassOf
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 3 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotFunctionShape  (line 15)
+  [domain terms] (3 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#subClassOf
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 3 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:NotRoleShape  (line 16)
+  [domain terms] (3 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#subClassOf
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+  Summary — domain: 3 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleDomainShape  (line 17)
+  [domain terms] (4 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isInvolvedIn
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForFunction
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForRole
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/roleComponent
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+  Summary — domain: 4 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleRangeShape  (line 18)
+  [domain terms] (2 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForRole
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/roleComponent
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+  Summary — domain: 2 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:RoleShape  (line 19)
+  [domain terms] (8 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesEntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesFunction
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isInvolvedIn
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForEntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForFunction
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForRole
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/roleComponent
+    FOUND      [http                          ]  http://www.w3.org/2000/01/rdf-schema#label
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+  Summary — domain: 8 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:TopShape  (line 20)
+  [domain terms] (25 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Top
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesEntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesFunction
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/communicatesWith
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/decreases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/entityTypeComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/functionComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/homonym
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/increases
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isBasedOn
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isInvolvedIn
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForEntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForFunction
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForRole
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/roleComponent
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/softwareProduct
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/supports
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/typicalFeature
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/updates
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/uses
+    FOUND      [http                          ]  http://www.w3.org/2004/02/skos/core#broadMatch
+    FOUND      [http                          ]  http://www.w3.org/2004/02/skos/core#closeMatch
+    FOUND      [http                          ]  http://www.w3.org/2004/02/skos/core#exactMatch
+    FOUND      [http                          ]  http://www.w3.org/2004/02/skos/core#narrowMatch
+    FOUND      [http                          ]  http://www.w3.org/2004/02/skos/core#relatedMatch
+  [shacl value terms] (3 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Role
+  Summary — domain: 25 found, 0 not found  |  value: 3 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:UpdatesRangeShape  (line 21)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/updates
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:UsesRangeShape  (line 22)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/uses
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/EntityType
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:approvesFunctionRangeShape  (line 23)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/approvesFunction
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:functionComponentRangeShape  (line 24)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/functionComponent
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:isInvolvedInRangeShape  (line 25)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isInvolvedIn
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:isResponsibleForFunctionRangeShape  (line 26)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/isResponsibleForFunction
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+──────────────────────────────────────────────────────────────────────
+Entry : meta:supportsRangeShape  (line 27)
+  [domain terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/supports
+  [shacl value terms] (1 URIs)
+    FOUND      [local                         ]  http://www.snik.eu/ontology/meta/Function
+  Summary — domain: 1 found, 0 not found  |  value: 1 found, 0 no metadata
+
+======================================================================
+GLOBAL SUMMARY
+  Total entries processed : 27
+
+  [domain terms]
+    Unique URIs found        : 31
+    Unique URIs not found    : 0
+    Entries — all found      : 27
+    Entries — some missing   : 0
+    Entries — none found     : 0
+
+  [shacl value terms]
+    Unique URIs found            : 5
+    Unique URIs without metadata : 0
