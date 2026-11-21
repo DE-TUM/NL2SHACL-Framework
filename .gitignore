@@ -221,3 +221,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Tools of the logical evaluator (downloaded by Shapes-Evaluation/tools/setup_logical_tools.sh)
+Shapes-Evaluation/tools/bin/

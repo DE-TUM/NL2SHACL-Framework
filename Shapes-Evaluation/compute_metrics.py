@@ -16,11 +16,17 @@ Metric definitions:
     Validity metrics   : denominator is N (all records)
     Structural metrics : denominator is N_valid (passed all validity checks)
     Semantic metrics   : denominator is N_semantic_valid (semantic status == success)
+    Logical metrics    : only when the logical evaluator was run (run_evaluation.py --run logical)
 
 Semantic metric details:
-    SER
-        Semantic Equivalence Rate.
-        Fraction of records where gt and llm violation focus node sets are identical.
+    ASER
+        Approximate Semantic Equivalence Rate.
+        Fraction of records where gt and llm violation focus node sets are identical
+        on a sampled data graph.
+    LER
+        Logical Equivalence Rate: fraction of equivalent records among those with
+        a definite logical outcome. LER_coverage is the fraction of attempted
+        records with a definite outcome. See logical_metrics.py.
 """
 
 import argparse
@@ -30,6 +36,7 @@ import os
 import sys
 
 from filename_utils import parse_filename as _parse_filename, short_subset
+from logical_metrics import LOGICAL_FIELDS, logical_log_lines, logical_metrics, print_logical
 
 
 # ---------------------------------------------------------------------------
@@ -165,6 +172,7 @@ def compute_log(records: list, filename: str) -> list:
         f"  Not run (null):                    {n_semantic_null}",
         f"  Equivalent focus nodes:            {n_semantic_equivalent}",
     ]
+    lines += logical_log_lines(records)
     return lines
 
 
@@ -233,7 +241,8 @@ def compute_metrics(records: list) -> dict:
         "Vocab_ER":         safe_rate(n_vocab_error,   n_spec),
         "EMR":              safe_mean(iso_scores),
         "PMS":              safe_mean(f1_scores),
-        "SER":              safe_mean(eq_list),
+        "ASER":             safe_mean(eq_list),
+        **logical_metrics(records),
     }
 
 
@@ -261,7 +270,8 @@ def print_metrics(subset: str, model: str, m: dict) -> None:
     print(f"  {'EMR':<30} {fmt(m['EMR'])}")
     print(f"  {'PMS':<30} {fmt(m['PMS'])}")
     print(f"  {'':─<60}")
-    print(f"  {'SER':<30} {fmt(m['SER'])}")
+    print(f"  {'ASER':<30} {fmt(m['ASER'])}")
+    print_logical(m)
 
 
 # ---------------------------------------------------------------------------
@@ -317,7 +327,8 @@ def main():
         "Spec_VR", "Spec_ER",
         "Vocab_VR", "Vocab_ER",
         "EMR", "PMS",
-        "SER",
+        "ASER",
+        *LOGICAL_FIELDS,
     ]
 
     for filepath in input_files:
