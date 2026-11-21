@@ -29,6 +29,8 @@ import json
 import os
 import sys
 
+from filename_utils import parse_filename as _parse_filename, short_subset
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -58,25 +60,12 @@ def load_jsonl(path: str) -> list:
 
 def parse_filename(filename: str):
     """
-    Parse (subset, model) from filename.
+    Parse (subset, model) from filename; the subset is shown without "-dataset".
     e.g. invoice-dataset_gemini-3-1-pro-preview_eval.jsonl
       -> ("invoice", "gemini-3-1-pro-preview")
     """
-    stem = os.path.splitext(filename)[0]
-    stem = stem.replace("_eval", "").replace("_processed", "")
-
-    import re
-    stem = re.sub(r'[-_]dataset', '_dataset', stem, count=1)
-
-    parts = stem.split("_", 1)
-    if len(parts) == 2:
-        subset_raw, model = parts
-    else:
-        subset_raw, model = stem, "unknown"
-
-    subset = re.sub(r'[-_]dataset$', '', subset_raw)
-
-    return subset, model
+    subset, model = _parse_filename(filename)
+    return short_subset(subset), model
 
 
 def safe_mean(values: list) -> float | None:
