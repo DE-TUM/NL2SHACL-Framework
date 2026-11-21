@@ -26,6 +26,8 @@ The framework consists of three modules that together support end-to-end benchma
 
 ## Getting Started
 
+The framework requires Python 3.10 or newer. Install the dependencies with `pip install -r requirements.txt`.
+
 Choose the path that matches your goal.
 
 **Path A: Evaluate your own NL2SHACL system on the existing dataset**

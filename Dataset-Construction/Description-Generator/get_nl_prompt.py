@@ -186,6 +186,7 @@ def main():
                 "id": record_id,
                 "system_prompt": system_prompt,
                 "user_prompt": user_prompt,
+                "shacl": shacl_content,
             }
             out_f.write(json.dumps(out_record, ensure_ascii=False) + "\n")
             written += 1

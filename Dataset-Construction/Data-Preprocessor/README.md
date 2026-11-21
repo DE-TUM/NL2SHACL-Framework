@@ -1,12 +1,14 @@
 # Data Preprocessor
 
-This module implements the first step of the Dataset Construction pipeline in NL2SHACL-Framework. It takes raw SHACL shape files and ontologies as input and produces a structured JSONL dataset ready for description generation.
+This module implements the first step of the Dataset Construction pipeline in NL2SHACL-Framework. It takes raw SHACL shape files and ontologies as input and produces an augmented JSONL file ready for description generation.
 
-The pipeline consists of four scripts that are run in sequence.
+The pipeline consists of three scripts that are run in sequence.
 
 ---
 
 ## Requirements
+
+Python 3.10 or newer.
 
 ```bash
 pip install rdflib requests
@@ -28,13 +30,9 @@ Raw .ttl files
       │
       ▼
 3. ontology_augment.py     →  output_data_augmented.jsonl
-      │
-      ▼
-4. convert_dataset.py      →  <subset>-dataset/
-                                  descriptions.jsonl
-                                  ontology_snippets.jsonl
-                                  shacl/
 ```
+
+The augmented JSONL is the input to the [Description Generator](../Description-Generator/). The final dataset is assembled at the end of the whole pipeline by [`convert_dataset.py`](../convert_dataset.py), once the descriptions have been generated and reviewed.
 
 ---
 
@@ -58,7 +56,7 @@ python convert_shacl.py --input-dir ./shacl --output-file output_data.jsonl
 **Output format** (one record per line):
 
 ```json
-{"id": ":MyShape", "shacl": "@prefix ...\n:MyShape a sh:NodeShape ...", "nl": ""}
+{"id": ":MyShape", "shacl": "@prefix ...\n:MyShape a sh:NodeShape ...", "description": ""}
 ```
 
 ---
@@ -105,38 +103,8 @@ python ontology_augment.py output_data.jsonl \
 
 ---
 
-### Step 4: convert_dataset.py
-
-Converts the augmented JSONL into the final structured dataset format, with sequential IDs and separate files for descriptions, ontology snippets, and SHACL shapes.
-
-```bash
-python convert_dataset.py output_data_augmented.jsonl \
-    --out-dir epo-dataset \
-    --prefix epo
-```
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `output_data_augmented.jsonl` | (required) | Input JSONL from Step 3 |
-| `--out-dir` | `<stem>_dataset/` | Output directory |
-| `--prefix` | `invoice` | ID prefix for records (e.g. `epo`, `snik`) |
-
-**Output structure:**
-
-```
-<out-dir>/
-├── descriptions.jsonl       — id, label, description
-├── ontology_snippets.jsonl  — id, label, ontology_snippet
-└── shacl/
-    ├── <prefix>-1.ttl
-    ├── <prefix>-2.ttl
-    └── ...
-```
-
----
-
 ## Notes
 
 - Records that fail syntactic validation in Step 2 should be inspected and either fixed or removed before running Step 3.
 - The `--skip-namespaces` argument in Step 3 should be used to exclude shape-specific namespaces that are not part of the domain ontology.
-- The output of Step 4 feeds directly into the [Description Generator](../Description-Generator/) module.
+- The output of Step 3 (`output_data_augmented.jsonl`) feeds directly into the [Description Generator](../Description-Generator/) module.
