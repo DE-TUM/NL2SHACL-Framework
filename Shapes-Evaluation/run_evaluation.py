@@ -16,15 +16,34 @@ Usage:
     # Run semantic evaluator with custom scale
     python run_evaluation.py --input processed-output/ --run semantic --scale 10
 
+    # Also decide logical equivalence with SHACL2FOL and Vampire (opt-in; needs
+    # Java 21+, see README "Logical equivalence"). Time budget per direction: 60 s.
+    python run_evaluation.py --input processed-output/ --run logical --ler-timeout 120
+
 Arguments:
     --input       Path to a single .jsonl file or a folder of .jsonl files
     --output_dir  Output directory (default: evaluation-output/)
-    --run         Which evaluators to run: validity structural semantic
-                  validity always runs first as a prerequisite (default: all)
-    --only        Skip validity and run only one evaluator: structural semantic
+    --run         Which evaluators to run: validity structural semantic logical
+                  validity always runs first as a prerequisite.
+                  Default: validity structural semantic. "logical" is opt-in.
+    --only        Skip validity and run only one evaluator: structural semantic logical
                   Cannot be used together with --run.
     --scale       Scale factor for rdf-graph-gen (default: 10)
     --batch_size  Batch size for rdf-graph-gen (default: 100)
+    --ler-timeout Time budget in seconds of each of the two containment checks of
+                  the logical evaluator (default: 60)
+    --shacl2fol-jar, --prover, --java
+                  Locations of SHACL2FOL.jar, the Vampire executable and Java 21+
+                  (defaults: environment variables SHACL2FOL_JAR, VAMPIRE_PATH,
+                  JAVA_BIN, then tools/bin/ and PATH)
+    --ler-strip-annotations
+                  Remove labels, descriptions and similar annotations from both
+                  shapes graphs before the logical check
+    --ler-no-component-check
+                  Report "equivalent" even if the graphs differ in constraints
+                  that SHACL2FOL ignores (sh:datatype, value ranges, string
+                  lengths, sh:pattern, sh:languageIn). By default such records
+                  are reported as undetermined.
 
 Output format per record:
     {
@@ -39,7 +58,8 @@ Output format per record:
             "validation_error": null
         },
         "structural": { ... },   # null if not run or validity failed
-        "semantic": { ... }      # null if not run or validity failed
+        "semantic": { ... },     # null if not run or validity failed
+        "logical":  { ... }      # null if not run or validity failed
     }
 """
 
@@ -54,6 +74,11 @@ from evaluators import (
     evaluate_semantic_graph_equivalence,
 )
 from filename_utils import parse_filename, strip_suffixes
+from logical_equivalence import (
+    DEFAULT_TIMEOUT as LER_DEFAULT_TIMEOUT,
+    evaluate_logical_equivalence,
+    resolve_tools,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +86,8 @@ from filename_utils import parse_filename, strip_suffixes
 # ---------------------------------------------------------------------------
 
 OUTPUT_DIR     = "evaluation-output"
-ALL_EVALUATORS = {"validity", "structural", "semantic"}
+ALL_EVALUATORS = {"validity", "structural", "semantic"}   # run by default
+OPTIONAL_EVALUATORS = {"logical"}                          # only run on request
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +171,7 @@ def evaluate_record(
     subset: str,
     model: str,
     normalize: bool = False,
+    logical_options: dict = None,
 ) -> dict:
     """Run selected evaluators on a single record. Returns result dict."""
     record_id       = record["id"]
@@ -157,6 +184,7 @@ def evaluate_record(
         "validity":       None,
         "structural":     None,
         "semantic":       None,
+        "logical":        None,
         "reference_shacl": reference_shacl,
         "output_shacl":   output_shacl,
     }
@@ -202,6 +230,20 @@ def evaluate_record(
             print(f"  [WARN] Semantic eval failed for '{record_id}': {e}", file=sys.stderr)
             result["semantic"] = {"status": "failure", "details": str(e)}
 
+    # --- Logical (SHACL2FOL + Vampire) ---
+    if "logical" in run:
+        try:
+            result["logical"] = evaluate_logical_equivalence(
+                reference_shacl, output_shacl, **(logical_options or {})
+            )
+        except Exception as e:  # the evaluator reports problems itself; this is a safety net
+            print(f"  [WARN] Logical eval failed for '{record_id}': {e}", file=sys.stderr)
+            result["logical"] = {
+                "status": "undetermined", "equivalent": None, "direction": None,
+                "ref_contained_in_out": None, "out_contained_in_ref": None,
+                "reason": f"error:{type(e).__name__}", "time_s": None,
+            }
+
     return result
 
 
@@ -216,6 +258,7 @@ def process_file(
     scale: int,
     batch_size: int,
     normalize: bool = False,
+    logical_options: dict = None,
 ) -> None:
     """Process a single processed JSONL file."""
     filename      = os.path.basename(input_path)
@@ -261,6 +304,7 @@ def process_file(
                 subset=subset,
                 model=model,
                 normalize=normalize,
+                logical_options=logical_options,
             )
 
             result["subset"] = subset
@@ -274,6 +318,7 @@ def process_file(
                 "validity":        result["validity"],
                 "structural":      result["structural"],
                 "semantic":        result["semantic"],
+                "logical":         result["logical"],
                 "reference_shacl": result.get("reference_shacl"),
                 "output_shacl":    result.get("output_shacl"),
             }
@@ -322,15 +367,16 @@ def parse_args():
 
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
-        "--run", nargs="+", choices=list(ALL_EVALUATORS),
+        "--run", nargs="+", choices=sorted(ALL_EVALUATORS | OPTIONAL_EVALUATORS),
         default=None,
         help=(
             "Which evaluators to run. validity always runs first as a prerequisite. "
-            "Choices: validity structural semantic. Default: all."
+            "Choices: validity structural semantic logical. "
+            "Default: validity structural semantic ('logical' must be requested)."
         )
     )
     mode.add_argument(
-        "--only", choices=["structural", "semantic"],
+        "--only", choices=["structural", "semantic", "logical"],
         default=None,
         help="Skip validity and run only this one evaluator. Cannot be used with --run."
     )
@@ -342,6 +388,26 @@ def parse_args():
     parser.add_argument(
         "--batch_size", type=int, default=100,
         help="Batch size for rdf-graph-gen semantic evaluator (default: 100)"
+    )
+    parser.add_argument(
+        "--ler-timeout", type=int, default=LER_DEFAULT_TIMEOUT,
+        help=f"Time budget in seconds of each containment check of the logical "
+             f"evaluator (default: {LER_DEFAULT_TIMEOUT})"
+    )
+    parser.add_argument("--shacl2fol-jar", default=None,
+                        help="Path of SHACL2FOL.jar (default: $SHACL2FOL_JAR or tools/bin/SHACL2FOL.jar)")
+    parser.add_argument("--prover", default=None,
+                        help="Path of the Vampire executable (default: $VAMPIRE_PATH or tools/bin/vampire)")
+    parser.add_argument("--java", default=None,
+                        help="Java 21+ executable (default: $JAVA_BIN, java on PATH, $JAVA_HOME, $CONDA_PREFIX)")
+    parser.add_argument(
+        "--ler-strip-annotations", action="store_true", default=False,
+        help="Remove labels, descriptions and similar annotations before the logical check"
+    )
+    parser.add_argument(
+        "--ler-no-component-check", action="store_true", default=False,
+        help="Do not downgrade 'equivalent' to undetermined when the graphs differ in "
+             "constraints that SHACL2FOL ignores (datatype, ranges, lengths, pattern, languageIn)"
     )
     parser.add_argument(
         "--normalize", action="store_true", default=False,
@@ -363,6 +429,23 @@ def main():
     else:
         run = ALL_EVALUATORS
         print("Mode: all evaluators")
+
+    logical_options = None
+    if "logical" in run:
+        tools, problem = resolve_tools(args.shacl2fol_jar, args.prover, args.java)
+        if tools is None:
+            print(f"[ERROR] The logical evaluator cannot run: {problem}", file=sys.stderr)
+            sys.exit(1)
+        print(f"Logical evaluator: java={tools['java']}  jar={tools['jar']}  prover={tools['prover']}  "
+              f"timeout={args.ler_timeout}s per direction")
+        logical_options = {
+            "timeout": args.ler_timeout,
+            "jar": args.shacl2fol_jar,
+            "prover": args.prover,
+            "java": args.java,
+            "strip_annotation_triples": args.ler_strip_annotations,
+            "check_unsupported_components": not args.ler_no_component_check,
+        }
 
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -391,6 +474,7 @@ def main():
             scale=args.scale,
             batch_size=args.batch_size,
             normalize=args.normalize,
+            logical_options=logical_options,
         )
 
     print("\nAll files processed.")

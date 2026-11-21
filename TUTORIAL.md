@@ -222,6 +222,16 @@ python Shapes-Evaluation/run_evaluation.py \
 
 **Output:** `evaluation-output/example-nl2shacl-dataset_rule_based_eval.jsonl`
 
+**Optional: logical equivalence.** In addition to the sampling-based ASER, the logical evaluator decides equivalence for all data graphs (LER) with SHACL2FOL and the Vampire theorem prover. It needs Java 21+ and two external tools, which `Shapes-Evaluation/tools/setup_logical_tools.sh` installs (see the [Shapes-Evaluation README](Shapes-Evaluation/README.md#logical-equivalence-ler)). It is not part of the default run; request it with `--run logical`:
+
+```bash
+# optional, requires Java 21+, SHACL2FOL and Vampire
+bash Shapes-Evaluation/tools/setup_logical_tools.sh
+python Shapes-Evaluation/run_evaluation.py \
+    --input processed-output/example-nl2shacl-dataset_rule_based_processed.jsonl \
+    --run logical --output_dir evaluation-output-logical
+```
+
 ### Step 4: Compute metrics
 
 Aggregate the evaluation results into dataset-level metrics.

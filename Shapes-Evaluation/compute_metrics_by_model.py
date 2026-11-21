@@ -39,6 +39,7 @@ import sys
 from collections import defaultdict
 
 from filename_utils import parse_filename as _parse_filename, short_subset
+from logical_metrics import LOGICAL_FIELDS, logical_log_lines, logical_metrics, print_logical
 
 
 # ---------------------------------------------------------------------------
@@ -217,6 +218,7 @@ def compute_log(records: list, model: str, subsets: list) -> list:
         f"  Not run (null):                    {n_semantic_null}",
         f"  Equivalent focus nodes:            {n_semantic_equivalent}",
     ]
+    lines += logical_log_lines(records)
     return lines
 
 
@@ -285,7 +287,8 @@ def compute_metrics(records: list) -> dict:
         "Vocab_ER":                        safe_rate(n_vocab_error,                 n_vocab_reached),
         "EMR":                             safe_mean(iso_scores),
         "PMS":                             safe_mean(f1_scores),
-        "SER":                             safe_mean(eq_list),
+        "ASER":                            safe_mean(eq_list),
+        **logical_metrics(records),
     }
 
 
@@ -313,7 +316,8 @@ def print_metrics(model: str, subsets: list, m: dict) -> None:
     print(f"  {'EMR':<30} {fmt(m['EMR'])}")
     print(f"  {'PMS':<30} {fmt(m['PMS'])}")
     print(f"  {'':─<60}")
-    print(f"  {'SER':<30} {fmt(m['SER'])}")
+    print(f"  {'ASER':<30} {fmt(m['ASER'])}")
+    print_logical(m)
 
 
 # ---------------------------------------------------------------------------
@@ -389,7 +393,8 @@ def main():
         "Spec_VR", "Spec_ER",
         "Vocab_VR", "Vocab_ER",
         "EMR", "PMS",
-        "SER",
+        "ASER",
+        *LOGICAL_FIELDS,
     ]
 
     for model in sorted(model_records.keys()):
