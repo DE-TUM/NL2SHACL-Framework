@@ -1,3 +1,5 @@
+# Requires Python 3.10 or newer.
+
 # Core RDF and SHACL processing
 rdflib>=7.0.0
 pyshacl>=0.25.0

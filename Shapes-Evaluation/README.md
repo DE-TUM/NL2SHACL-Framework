@@ -2,15 +2,37 @@
 
 This module evaluates the quality of translated SHACL shapes against reference shapes. It takes post-processed LLM outputs and computes metrics across three dimensions: validity, structural similarity, and semantic equivalence.
 
-The module consists of three scripts.
+The module consists of three scripts, which share `filename_utils.py` for reading the subset and model from file names.
 
 ---
 
 ## Requirements
 
+Python 3.10 or newer.
+
 ```bash
 pip install rdflib pyshacl rdf-graph-gen requests
 ```
+
+---
+
+## File names
+
+The scripts read the **subset** and the **model** of an evaluation file from its name:
+
+```
+<subset>-dataset_<model>_processed.jsonl     (input of run_evaluation.py)
+<subset>-dataset_<model>_eval.jsonl          (output of run_evaluation.py)
+```
+
+For example, `snik-dataset_my-system_processed.jsonl` is evaluated as subset `snik-dataset` and model `my-system`.
+
+- Everything up to and including the first `-dataset` that is followed by `_` is the subset; the rest is the model. Hyphens and underscores are allowed in both parts, e.g. `my_data-dataset_rule_based_processed.jsonl`.
+- A trailing `_processed` or `_eval` is ignored.
+- If the name does not contain `-dataset_`, it is split at the first `_` into `<subset>_<model>`; if it contains no `_`, the model is `unknown`. A file name never causes an error.
+- The summary tables show the subset without the `-dataset` suffix (`snik`); the evaluation records keep the full `snik-dataset`.
+
+Names are used as they are: the model `gemini-2-5-pro` and the model `gemini-3-1-pro-preview` are two different models. To merge several spellings of one model, see `--model-aliases` of [`compute_metrics_by_model.py`](#compute_metrics_by_modelpy).
 
 ---
 
@@ -141,11 +163,42 @@ python compute_metrics.py --input evaluation-output/invoice-dataset_claude-opus-
 
 ### compute_metrics_by_model.py
 
-Aggregates metrics across subsets, reporting results per model. Useful for comparing overall model performance.
+Aggregates metrics across subsets, reporting results per model. Useful for comparing overall model performance. It reports the same metrics as `compute_metrics.py`, but pools the records of all subsets for each model.
 
 ```bash
+# Aggregate all eval files in a folder
 python compute_metrics_by_model.py --input evaluation-output/
+
+# Aggregate a single file
+python compute_metrics_by_model.py --input evaluation-output/invoice-dataset_claude-opus-4-7_eval.jsonl
+
+# Merge different spellings of the same model name
+python compute_metrics_by_model.py --input evaluation-output/ --model-aliases model_aliases.json
 ```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--input` | (required) | Path to a single eval `.jsonl` file or a folder |
+| `--model-aliases` | none | JSON file that merges different spellings of one model name (see below) |
+| `--output_dir` | `metrics-output/` | Directory to save the CSV summary |
+| `--log_dir` | `eval-logs/` | Directory to save per-model diagnostic logs |
+
+**Outputs:**
+
+- `metrics-output/metrics_by_model_summary.csv` — one row per model, with the list of pooled subsets
+- `eval-logs/<model>_model_log.txt` — per-model diagnostic counts across all subsets (characters that are not allowed in file names, such as the `/` in an alias name, are replaced by `_`, e.g. `anthropic_claude-opus-4.7_model_log.txt`)
+
+**Model names.** The model is read from the file name (see [File names](#file-names)) and used as it is, so files with the same model name are pooled and files with different names are reported separately.
+
+If the same model appears under several spellings (for example because `/` and `.` in `anthropic/claude-opus-4.7` were replaced when the file was written), list them in an alias file:
+
+```json
+{
+  "anthropic/claude-opus-4.7": ["anthropic-claude-opus-4-7", "claude-opus-4-7"]
+}
+```
+
+The keys are the names to report; the values are the spellings to merge into them. Names are compared ignoring case and the separators `-`, `_`, `.` and `/`, so `anthropic_claude_opus_4.7` is also matched. Models that are not listed keep their own name.
 
 ---
 

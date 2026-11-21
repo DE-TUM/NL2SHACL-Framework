@@ -53,6 +53,7 @@ from evaluators import (
     evaluate_syntactic_equivalence,
     evaluate_semantic_graph_equivalence,
 )
+from filename_utils import parse_filename, strip_suffixes
 
 
 # ---------------------------------------------------------------------------
@@ -99,20 +100,6 @@ def load_existing_ids(output_path: str) -> set:
             except json.JSONDecodeError:
                 continue
     return processed
-
-
-def parse_filename(filename: str) -> tuple[str, str]:
-    """
-    Parse subset and model from filename.
-    e.g. invoice-dataset_gemini-2-5-pro_processed.jsonl
-      -> ("invoice-dataset", "gemini-2-5-pro")
-    """
-    stem = os.path.splitext(filename)[0]
-    stem = stem.replace("_processed", "").replace("_eval", "")
-    parts = stem.split("_", 1)
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return stem, "unknown"
 
 
 # ---------------------------------------------------------------------------
@@ -233,7 +220,7 @@ def process_file(
     """Process a single processed JSONL file."""
     filename      = os.path.basename(input_path)
     subset, model = parse_filename(filename)
-    stem          = os.path.splitext(filename)[0].replace("_processed", "")
+    stem          = strip_suffixes(os.path.splitext(filename)[0], ("_processed",))
     output_path   = os.path.join(output_dir, f"{stem}_eval.jsonl")
     failure_path  = os.path.join(output_dir, f"{stem}_semantic_failures.csv")
 

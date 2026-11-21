@@ -325,7 +325,7 @@ def process_graph(g: Graph, stats: dict) -> list[dict]:
         if n_sparql:
             log.info("  sh:sparql stripped (%d triple(s)) from %s", n_sparql, short_id)
             stats["sparql_triples_stripped"] += n_sparql
-        records.append({"_raw_id": short_id, "shacl": ttl, "nl": ""})
+        records.append({"_raw_id": short_id, "shacl": ttl, "description": ""})
 
     return records
 
@@ -394,7 +394,7 @@ def main():
         else:
             id_counter[raw] += 1
             unique_id = f"{raw}-{id_counter[raw]}"
-        final_records.append({"id": unique_id, "shacl": rec["shacl"], "nl": rec["nl"]})
+        final_records.append({"id": unique_id, "shacl": rec["shacl"], "description": rec["description"]})
 
     with open(output_file, "w", encoding="utf-8") as f:
         for rec in final_records:

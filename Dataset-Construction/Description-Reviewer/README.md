@@ -20,7 +20,7 @@ No additional packages are required beyond the Python standard library. The UI i
 python UI_annotator.py
 ```
 
-On launch, the tool will look for a file named `dcat_nl.jsonl` in the current directory. If not found, a file picker dialog will open to let you select the input file manually.
+On launch, the tool will look for a file named `dcat_nl.jsonl` in the current directory. If not found, a file picker dialog will open to let you select the input file manually. Select the `<input_stem>_for_review.jsonl` file written by `run_gemini.py` in the [Description Generator](../Description-Generator/).
 
 You will then be prompted to enter your name, which is used to name the output file:
 
@@ -38,7 +38,9 @@ The input file is a `.jsonl` file where each line contains a record with at leas
 |-------|-------------|
 | `id` | Record identifier |
 | `shacl` | The reference SHACL shape in Turtle format |
-| `nl` | The generated natural language description to be reviewed |
+| `description` | The generated natural language description to be reviewed |
+
+Files from older versions that use `nl` instead of `description` are still accepted and are converted on load.
 
 ---
 
@@ -73,7 +75,7 @@ The output file contains one JSON record per line, with the following fields:
 |-------|-------------|
 | `id` | Record identifier |
 | `shacl` | The SHACL shape (unchanged) |
-| `nl` | The reviewed and possibly edited natural language description |
+| `description` | The reviewed and possibly edited natural language description |
 | `comment` | Annotator comments, if any |
 | `flagged` | `true` if the record was marked as needing further editing |
 | `checked` | `true` if the record has been reviewed |

@@ -48,6 +48,8 @@ This path uses a prompting-based pipeline to call LLMs via the OpenRouter API. I
 
 ### Requirements
 
+Python 3.10 or newer.
+
 ```bash
 pip install requests
 ```

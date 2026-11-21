@@ -282,6 +282,10 @@ def main(jsonl_path: str) -> None:
 
 
 if __name__ == "__main__":
+    usage = "Usage: python shacl_quality_check.py <path/to/data.jsonl>"
+    if len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help"):
+        print(usage)
+        sys.exit(0)
     if len(sys.argv) != 2:
-        sys.exit("Usage: python shacl_quality_check.py <path/to/data.jsonl>")
+        sys.exit(usage)
     main(sys.argv[1])

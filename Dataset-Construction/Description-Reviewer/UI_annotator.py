@@ -78,6 +78,9 @@ class DatasetEditor:
                 for line in f:
                     if line.strip():
                         entry = json.loads(line)
+                        # Older files used 'nl' for the description field.
+                        if 'description' not in entry and 'nl' in entry:
+                            entry['description'] = entry.pop('nl')
                         entry['comment'] = ""
                         entry['flagged'] = False
                         entry['checked'] = False
@@ -93,7 +96,9 @@ class DatasetEditor:
 
                 for i, u_entry in enumerate(user_data):
                     if i < len(self.data):
-                        if 'nl' in u_entry: self.data[i]['nl'] = u_entry['nl']
+                        # 'nl' is the legacy name of 'description' in older session files.
+                        if 'description' in u_entry: self.data[i]['description'] = u_entry['description']
+                        elif 'nl' in u_entry: self.data[i]['description'] = u_entry['nl']
                         if 'comment' in u_entry: self.data[i]['comment'] = u_entry['comment']
                         if 'flagged' in u_entry: self.data[i]['flagged'] = u_entry['flagged']
                         if 'checked' in u_entry: self.data[i]['checked'] = u_entry['checked']
@@ -317,7 +322,7 @@ class DatasetEditor:
         self.txt_shacl.config(state=tk.DISABLED)
 
         self.txt_nl.delete("1.0", tk.END)
-        self.txt_nl.insert("1.0", entry.get('nl', ''))
+        self.txt_nl.insert("1.0", entry.get('description', ''))
 
         self.txt_comment.delete("1.0", tk.END)
         self.txt_comment.insert("1.0", entry.get('comment', ''))
@@ -335,7 +340,7 @@ class DatasetEditor:
 
         nl_text = self.txt_nl.get("1.0", "end-1c")
         nl_text = " ".join(nl_text.splitlines())
-        self.data[self.current_index]['nl'] = nl_text
+        self.data[self.current_index]['description'] = nl_text
 
         self.data[self.current_index]['comment'] = self.txt_comment.get("1.0", "end-1c")
 

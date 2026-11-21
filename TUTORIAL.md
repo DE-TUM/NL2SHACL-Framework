@@ -11,6 +11,8 @@ The pipeline has two main stages:
 
 ## Prerequisites
 
+Python 3.10 or newer.
+
 ```bash
 pip install rdflib pyshacl requests rdf-graph-gen
 pip install google-genai  # for Stage 1 description generation
@@ -65,7 +67,7 @@ python Dataset-Construction/Data-Preprocessor/convert_shacl.py \
     --output-file examples/my-dataset/output_data.jsonl
 ```
 
-**Output:** `examples/my-dataset/output_data.jsonl` — one record per shape, with `id`, `shacl`, and `nl` fields.
+**Output:** `examples/my-dataset/output_data.jsonl` — one record per shape, with `id`, `shacl`, and an empty `description` field (filled in later by the description generation steps).
 
 ### Step 2: Quality check and prefix extraction
 
@@ -117,16 +119,17 @@ python Dataset-Construction/Description-Generator/get_nl_prompt.py \
 
 ### Step 5: Call Gemini API to generate descriptions
 
-Send the prompts to the Gemini API and save the generated descriptions.
+Send the prompts to the Gemini API and save the generated descriptions. This step requires the `GEMINI_API_KEY` environment variable (see Prerequisites). If you do not have an API key, skip it: Step 6 and Step 7 can use the pre-reviewed example file instead.
 
 ```bash
 python Dataset-Construction/Description-Generator/run_gemini.py \
     --input examples/my-dataset/output_data_augmented_nl_prompts.jsonl
 ```
 
-**Output:** `examples/my-dataset/output_data_augmented_nl_prompts_generated_description.jsonl`
+**Output:** two files next to the input:
 
-Each record contains an `id` and a `generated_description` field.
+- `examples/my-dataset/output_data_augmented_nl_prompts_generated_description.jsonl` — one record per shape, with `id` and `generated_description`.
+- `examples/my-dataset/output_data_augmented_nl_prompts_for_review.jsonl` — the same descriptions together with the shapes, as `id`, `shacl`, and `description`. This is the file you open in the Description Reviewer in Step 6.
 
 ### Step 6: Human review
 
@@ -136,13 +139,15 @@ Open the Description Reviewer GUI to review and edit the generated descriptions.
 python Dataset-Construction/Description-Reviewer/UI_annotator.py
 ```
 
-The reviewer saves the final approved descriptions to a reviewed JSONL file. For this tutorial, we assume the reviewed file is:
+When the tool starts, select the `..._for_review.jsonl` file produced in Step 5 (a file picker opens if `dcat_nl.jsonl` is not found in the current directory) and enter your name. Progress is saved to `corrected_dcat_dataset_<name>.jsonl` in the current directory. Each record in that file has `id`, `shacl`, the reviewed `description`, and the review fields `comment`, `flagged` and `checked`. Pass this file as `--descriptions` in Step 7; only `id` and `description` are used.
+
+For this tutorial, we skip the interactive review and use a pre-reviewed file that is already included:
 
 ```
 examples/my-dataset/output_data_description_reviewed.jsonl
 ```
 
-Each record in this file must have `id` and `description` fields.
+Each record in this file has `id` and `description` fields.
 
 ### Step 7: Convert to dataset format
 
@@ -153,22 +158,26 @@ python Dataset-Construction/convert_dataset.py \
     examples/my-dataset/output_data_augmented.jsonl \
     --descriptions examples/my-dataset/output_data_description_reviewed.jsonl \
     --out-dir examples/example-nl2shacl-dataset \
-    --prefix snik
+    --prefix example-nl2shacl
 ```
 
 **Output:**
 
 ```
 examples/example-nl2shacl-dataset/
-├── snik-descriptions.jsonl
-├── snik-ontology_snippets.jsonl
+├── example-nl2shacl-descriptions.jsonl
+├── example-nl2shacl-ontology_snippets.jsonl
 └── shacl/
-    ├── snik-1.ttl
-    ├── snik-2.ttl
+    ├── example-nl2shacl-1.ttl
+    ├── example-nl2shacl-2.ttl
     └── ...
 ```
 
 This is the final dataset format, ready for use with the Translation and Evaluation module.
+
+> **Note:** The example reviewed file contains descriptions for only 8 of the 27 shapes, so the script reports 19 skipped records (`missing description`). This is expected for the example data.
+>
+> The output folder must be named `<prefix>-dataset` (here `example-nl2shacl-dataset`), because Stage 2 locates the dataset as `<dataset-dir>/<subset>/` and infers the file prefix by removing `-dataset` from the subset name.
 
 ---
 
@@ -182,8 +191,8 @@ The rule-based translator reads the dataset and produces translated SHACL shapes
 
 ```bash
 python NL2SHACL-Translator/translator_example_rule_based.py \
-    --subset snik-dataset \
-    --dataset-dir examples/example-nl2shacl-dataset
+    --subset example-nl2shacl-dataset \
+    --dataset-dir examples
 ```
 
 **Output:** `your_outputs.jsonl` — one record per input, with `id` and `output_shacl` fields.
@@ -195,12 +204,12 @@ Attach the reference shapes from the dataset to each translated record.
 ```bash
 python NL2SHACL-Translator/attach_reference.py \
     --input your_outputs.jsonl \
-    --dataset-dir examples/example-nl2shacl-dataset \
-    --subset snik-dataset \
-    --output processed-output/snik-dataset_rule_based_processed.jsonl
+    --dataset-dir examples \
+    --subset example-nl2shacl-dataset \
+    --output processed-output/example-nl2shacl-dataset_rule_based_processed.jsonl
 ```
 
-**Output:** `processed-output/snik-dataset_rule_based_processed.jsonl` — records with `id`, `output_shacl`, and `reference_shacl` fields.
+**Output:** `processed-output/example-nl2shacl-dataset_rule_based_processed.jsonl` — records with `id`, `output_shacl`, and `reference_shacl` fields.
 
 ### Step 3: Run evaluation
 
@@ -208,10 +217,10 @@ Evaluate the translated shapes against the reference shapes across validity, str
 
 ```bash
 python Shapes-Evaluation/run_evaluation.py \
-    --input processed-output/snik-dataset_rule_based_processed.jsonl
+    --input processed-output/example-nl2shacl-dataset_rule_based_processed.jsonl
 ```
 
-**Output:** `evaluation-output/snik-dataset_rule_based_processed_eval.jsonl`
+**Output:** `evaluation-output/example-nl2shacl-dataset_rule_based_eval.jsonl`
 
 ### Step 4: Compute metrics
 
@@ -236,9 +245,9 @@ python Shapes-Evaluation/compute_metrics.py \
 | 2 | `shacl_quality_check.py` | `output_data.jsonl` | `output_data_check_log.txt`, `output_data_prefixes.json` |
 | 3 | `ontology_augment.py` | `output_data.jsonl` | `output_data_augmented.jsonl` |
 | 4 | `get_nl_prompt.py` | `output_data_augmented.jsonl` | `output_data_augmented_nl_prompts.jsonl` |
-| 5 | `run_gemini.py` | `output_data_augmented_nl_prompts.jsonl` | `..._generated_description.jsonl` |
-| 6 | `UI_annotator.py` | generated descriptions | `output_data_description_reviewed.jsonl` |
-| 7 | `convert_dataset.py` | augmented + reviewed | `snik-descriptions.jsonl`, `snik-ontology_snippets.jsonl`, `shacl/` |
+| 5 | `run_gemini.py` | `output_data_augmented_nl_prompts.jsonl` | `..._generated_description.jsonl`, `..._for_review.jsonl` |
+| 6 | `UI_annotator.py` | `..._for_review.jsonl` | `corrected_dcat_dataset_<name>.jsonl` (reviewed descriptions) |
+| 7 | `convert_dataset.py` | augmented + reviewed | `example-nl2shacl-descriptions.jsonl`, `example-nl2shacl-ontology_snippets.jsonl`, `shacl/` |
 | 8 | `translator_example_rule_based.py` | dataset | `your_outputs.jsonl` |
 | 9 | `attach_reference.py` | `your_outputs.jsonl` | `processed-output/xxx_processed.jsonl` |
 | 10 | `run_evaluation.py` | `processed-output/` | `evaluation-output/xxx_eval.jsonl` |
